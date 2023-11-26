@@ -2,6 +2,7 @@
 # code starts here
 
 class DNA:
+  # dict for the amino acid creation
   aminoAcidDict = {'Phe': ['UUU', 'UUC'],
                    'Leu': ['UUA', 'UUG', 'CUU', 'CUC', 'CUA', 'CUG'],
                    'Ile': ['AUU', 'AUC', 'AUA'],
@@ -31,7 +32,8 @@ class DNA:
     self.mrnaStrand = self.transcribeDnaToRna(dnaStrand)
     self.aminoAcids = self.translateAminoAcids(self.mrnaStrand)
     self.gcContentValue = self.gcContent(dnaStrand)
-    
+   
+  # returns the complementary sequence  
   @staticmethod
   def createDnaPair(dnaStrand):
     dnaStrand = dnaStrand.lower()
@@ -41,6 +43,7 @@ class DNA:
     dnaStrand = dnaStrand.replace('g', 'C')
     return dnaStrand
 
+  # returns the mrna sequence transcribed from the dna sequence
   @staticmethod
   def transcribeDnaToRna(dnaStrand):
     dnaStrand = dnaStrand.lower()
@@ -50,6 +53,7 @@ class DNA:
     dnaStrand = dnaStrand.replace('g', 'C')
     return dnaStrand
 
+  # returns amino acids for the mrna sequence
   @staticmethod
   def translateAminoAcids(mrnaStrand):
     aminoAcids = ''
@@ -60,18 +64,45 @@ class DNA:
           aminoAcids += key + ' '
     return aminoAcids.strip()
 
+  # returns gc content as a percent
   @staticmethod
   def gcContent(dnaStrand):
     return round((dnaStrand.count('G') + dnaStrand.count('C')) / len(dnaStrand), 1) * 100
+  
+  @staticmethod
+  def translateCodon(self, codon):
+    for aminoAcid, codons in self.aminoAcidDict.items():
+      print(codon)
+      if codon in codons:
+        return aminoAcid
+      
+  def translateReadingFrames(self):
+    mrnaStrand = self.mrnaStrand
+    frames = []
+    for frame in range(3):
+      proteinSequence = ''
+      for i in range(frame, len(mrnaStrand), 3):
+        codon = mrnaStrand[i:i+3]
+        proteinSequence += self.translateCodon(codon)
+      frames.append(proteinSequence)
+      
+    reverseComplement = self.translateDnaToRna(self.dnaPair).reverse()
+    print(reverseComplement)
+      
+    for frame in range(3):
+      proteinSequence = ''
+      for i in range(frame, len(mrnaStrand), 3):
+        codon = ''
   
 
   
 
 
 # tests
-# d = DNA('TACGCATTAATT')
-# print(d.dnaStrand)
-# print(d.dnaPair)
-# print(d.mrnaStrand)
-# print(d.aminoAcids)
-# print(d.gcContentValue)
+d = DNA('TACGCATTAATT')
+print(d.dnaStrand)
+print(d.dnaPair) 
+print(d.mrnaStrand)
+print(d.aminoAcids)
+print(d.gcContentValue)
+print(d.translateReadingFrames())
