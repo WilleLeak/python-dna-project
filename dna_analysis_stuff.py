@@ -27,9 +27,19 @@ class DNA:
 
   def __init__(self, dnaStrand):
     self.dnaStrand = dnaStrand.upper()
+    self.dnaPair = self.createDnaPair(dnaStrand)
     self.mrnaStrand = self.transcribeDnaToRna(dnaStrand)
     self.aminoAcids = self.translateAminoAcids(self.mrnaStrand)
     self.gcContentValue = self.gcContent(dnaStrand)
+    
+  @staticmethod
+  def createDnaPair(dnaStrand):
+    dnaStrand = dnaStrand.lower()
+    dnaStrand = dnaStrand.replace('a', 'T')
+    dnaStrand = dnaStrand.replace('t', 'A')
+    dnaStrand = dnaStrand.replace('c', 'G')
+    dnaStrand = dnaStrand.replace('g', 'C')
+    return dnaStrand
 
   @staticmethod
   def transcribeDnaToRna(dnaStrand):
@@ -52,13 +62,16 @@ class DNA:
 
   @staticmethod
   def gcContent(dnaStrand):
-    return round((dnaStrand.count('G') + dnaStrand.count('C')) / len(dnaStrand), 1)
+    return round((dnaStrand.count('G') + dnaStrand.count('C')) / len(dnaStrand), 1) * 100
+  
+
   
 
 
 # tests
 # d = DNA('TACGCATTAATT')
-
+# print(d.dnaStrand)
+# print(d.dnaPair)
 # print(d.mrnaStrand)
 # print(d.aminoAcids)
-# print(d.gcContent)
+# print(d.gcContentValue)
