@@ -28,7 +28,7 @@ def drawDNA(graph, dnaObj):
     if baseWidth > 15: 
       centerX = x + (baseWidth / 2)
       centerY = y - 15
-      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = 'Any 15') # labels center of rectangle with base pair
+      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 13)) # labels center of rectangle with base pair
     x += baseWidth + baseSpace
     
   x = 15
@@ -42,7 +42,7 @@ def drawDNA(graph, dnaObj):
     if baseWidth > 15:
       centerX = x + (baseWidth / 2)
       centerY = y - 15
-      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = 'Any 15') # labels center of rectangle with base pair
+      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 13)) # labels center of rectangle with base pair
     x += baseWidth + baseSpace
   
   # the dna sticks idk what theyre called
@@ -50,20 +50,31 @@ def drawDNA(graph, dnaObj):
   graph.draw_rectangle((10, 80), (15 + (baseWidth + baseSpace) * len(dnaObj.dnaStrand), 85), line_color = 'black', fill_color = 'black')
   
 def analyzeDNA(dnaInput, kmerLen):
-    # creates dna object and then pulls data
-    dnaObj = dna.DNA(dnaInput)
-    window['dna_desc'].update(visible = True)
-    window['analysis_output'].update(f'The GC content for the DNA sequence is {dnaObj.gcContentValue}%\n\nThe transcribed mRNA is\n{dnaObj.mrnaStrand}\n\nThe amino acids for the DNA sequence are:\n{dnaObj.aminoAcids}')
+  # creates dna object and then pulls data
+  dnaObj = dna.DNA(dnaInput, kmerLen)
+  window['dna_desc'].update(visible = True)
+  window['analysis_output'].update(f'The GC content for the DNA sequence is {dnaObj.gcContentValue}%\n\nThe transcribed mRNA is\n{dnaObj.mrnaStrand}\n\nThe amino acids for the DNA sequence are:\n{dnaObj.aminoAcids}')
+  
+  # dna visualization happens here
+  drawDNA(window['vis'], dnaObj)
+  # fills out table with info
+  fillTable(dnaObj, kmerLen)
     
-    # dna visualization happens here
     
-    drawDNA(window['vis'], dnaObj)
-    fillTable(dnaObj, kmerLen)
-    
-def fillTable(dnaObj, kmerLen):
-    values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen, True)
-    window['kmer_table'].update(values = values, visible = True)
-    window['kmer_desc'].update(visible = True)
+def fillTable(dnaObj, kmerLen): 
+  # calls kmerInfo method to get gui friendly kmers and then updates data and visibility of table
+  values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen, True)
+  window['kmer_table'].update(values = values, visible = True)
+  window['kmer_desc'].update(visible = True)
+  
+  
+  kmerInfo = dna.DNA.generateExtraKmerInfo(dnaObj.kmerInfo, True)
+
+  window['kmer_counts_table'].update(values = kmerInfo[0], visible = True)
+  window['kmer_count_desc'].update(visible = True)
+  
+  window['canon_kmer_counts_table'].update(values = kmerInfo[1], visible = True)
+  window['canon_kmer_count_desc'].update(visible = True)
     
   
 
@@ -79,45 +90,78 @@ windowSizeY = 900
 graphSizeX = windowSizeX - 100
 graphSizeY = 90
 
+# fonts
+headerFont = ('Arial Bold', 15)
+textFont = ('Arial Bold', 12)
+errorFont = ('Arial Bold', 20)
+
+
 # =================END OF GLOBAL VARIABLES==========================
 
 
 # ================GUI LAYOUT========================================
-sg.theme('DarkTeal4')
+sg.theme('DarkGrey')
 
+# layer with all of the input fields
 inputLayout = [
-  [sg.Text('Enter DNA sequence and kmer length', font = ('Arial Bold', 15))],
-  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (50, 10), enable_events = True, font = ('Arial Bold', 12)), sg.InputText(key = 'kmer_len_input', default_text = '3', font = ('Arial Bold', 12), size = (3, 1))]
+  [sg.Text('Enter DNA sequence and kmer length', font = headerFont)],
+  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (50, 10), enable_events = True, font = textFont), sg.InputText(key = 'kmer_len_input', default_text = '3', font = textFont, size = (3, 1))]
 ]
 
+# layer with all buttons 
 builderLayout = [
-  [sg.Text('Or build your own DNA sequence!', font = ('Arial Bold', 15))],
+  [sg.Text('Or build your own DNA sequence!', font = headerFont)],
   [sg.Button('A', key = 'a_builder'), sg.Button('T', key = 't_builder'), sg.Button('G', key = 'g_builder'), sg.Button('C', key = 'c_builder'), sg.Button('Delete', key = 'builder_delete'), sg.Button('Clear', key = 'builder_clear')],
   [sg.Button('Randomize', key = 'builder_random')],
   [sg.Button('Analyze')]
 ]
 
+# layer with output box
 outputLayout = [
-  [sg.Multiline('', size = (50, 10), key = 'analysis_output', font = ('Arial Bold', 15), no_scrollbar = True, disabled = True)]
+  [sg.Multiline('', size = (50, 10), key = 'analysis_output', font = headerFont, no_scrollbar = True, disabled = True)]
 ]
 
+# layer with image of dna strand (ngl my favorite part)
 visualizationLayer = [
-  [sg.Text('Visualization of DNA Strand', key = 'dna_desc', justification = 'center', font = ('Arial Bold', 15) ,visible = False)],
+  [sg.Text('Visualization of DNA Strand', key = 'dna_desc', justification = 'center', font = headerFont ,visible = False)],
   [sg.Graph(canvas_size = (graphSizeX, graphSizeY), key = 'vis', graph_bottom_left = (0,0), graph_top_right = (graphSizeX, graphSizeY))]
 ]
 
-kmerInfoLayer = [
-    [sg.Text('Kmer Information', key = 'kmer_desc', font = ('Arial Bold', 15), visible = False)],
-    [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', ' canonical kmer '],font = ('Arial Bold', 12), display_row_numbers = True, visible = False)]
+# tab for list of kmers
+kmerTableListTab = [
+  [sg.Text('kmer information', key = 'kmer_desc', font = headerFont, visible = False)],
+  [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', 'canonical kmer'],font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
 ]
+
+# tab for kmer information
+kmerTableCountsTab = [
+  [sg.Text('kmer count information', key = 'kmer_count_desc', font = headerFont, visible = False)],
+  [sg.Table(values = [], key = 'kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
+]
+
+# tab for canonical kmer information
+canonicalKmerTableCountsTab = [
+  [sg.Text('canonical kmer count information', key = 'canon_kmer_count_desc', font = headerFont, visible = False)],
+  [sg.Table(values = [], key = 'canon_kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
+]
+
+# tabgroup made of tabs
+kmerInfoLayer = [
+  [sg.TabGroup([
+    [sg.Tab('kmers', kmerTableListTab)],
+    [sg.Tab('kmer info', kmerTableCountsTab)],
+    [sg.Tab('canonical kmer info', canonicalKmerTableCountsTab)]
+  ], key = 'kmer_tabs')]
+]
+
 
 # layout that smushes it all together
 mainLayout = [
   [sg.Column(layout = inputLayout)],
   [sg.Column(layout = builderLayout)],
   [sg.Column(layout = outputLayout)],
-  [sg.Column(layout = visualizationLayer)],
-  [sg.Column(layout = kmerInfoLayer)]
+  [sg.Column(layout = kmerInfoLayer)],
+  [sg.Column(layout = visualizationLayer)]
 ]
 
  # ================END OF GUI LAYOUT================================
@@ -146,14 +190,16 @@ while True:
     window['sequence_input'].update(randomSequence)
     kmerLen = values['kmer_len_input']
     
+    # if kmer not number create error
     if not kmerLen.isnumeric():
-        sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
-        window['kmer_len_input'].update('3')
+        sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
+        window['kmer_len_input'].update('3') # default to 3
         continue
     
+    # if kmer longer than dna sequence thats a problem => error
     if int(kmerLen) > len(randomSequence):
-        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
-        window['kmer_len_input'].update('3')
+        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
+        window['kmer_len_input'].update('3') # default to 3
         continue
     
     analyzeDNA(randomSequence, int(kmerLen))
@@ -169,7 +215,7 @@ while True:
     updatedText = values['sequence_input'][0:len(values['sequence_input']) - 1]
     window['sequence_input'].update(updatedText)
     
-  # clears the text box and graph
+  # wipes everything off the screen
   if event == 'builder_clear':
       window['sequence_input'].update('')
       window['analysis_output'].update('')
@@ -177,6 +223,10 @@ while True:
       window['dna_desc'].update(visible = False)
       window['kmer_table'].update(visible = False)
       window['kmer_desc'].update(visible = False)
+      window['kmer_counts_table'].update(visible = False)
+      window['kmer_count_desc'].update(visible = False)
+      window['canon_kmer_counts_table'].update(visible = False)
+      window['canon_kmer_count_desc'].update(visible = False)
 
   # does dna analysis
   if event == 'Analyze':
@@ -185,22 +235,23 @@ while True:
     
     # this is needed so gui does not crash => not sure why it crashes when text field empty and you click analyze
     if dnaInput == '':
-      window['vis'].erase() # clear the graph just because
       continue
   
+    # if kmer not number create error
     if not kmerLen.isnumeric():
-        sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
         window['kmer_len_input'].update('3')
         continue
-    
+      
+    # if kmer longer than dna sequence thats a problem => error
     if int(kmerLen) > len(dnaInput):
-        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
         window['kmer_len_input'].update('3')
         continue
     
     # causes error popup and wipes input field if extra letters are in the field
     if not all(base in 'atcgATGC' for base in dnaInput):
-      sg.popup_error('Can only use characters \'A\' \'T\' \'G\' \'C\' in DNA sequence. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+      sg.popup_error('Can only use characters \'A\' \'T\' \'G\' \'C\' in DNA sequence. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
       window['sequence_input'].update('')
       continue
     
@@ -208,5 +259,5 @@ while True:
 
 
 window.close()
-
+# bye bye window
 # ==============END OF EVENT LOOP===================================
