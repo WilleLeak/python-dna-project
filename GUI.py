@@ -106,7 +106,7 @@ visualizationLayer = [
 
 kmerInfoLayer = [
     [sg.Text('Kmer Information', key = 'kmer_desc', font = ('Arial Bold', 20), visible = False)],
-    [sg.Table(values = [], key = 'kmer_table', headings = ['kmers', 'reverse complement kmer', 'canonical kmer'],font = ('Arial Bold', 12), visible = False)]
+    [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', ' canonical kmer '],font = ('Arial Bold', 12), visible = False)]
 ]
 
 # layout that smushes it all together
@@ -175,6 +175,10 @@ while True:
     if not kmerLen.isnumeric():
         sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
         window['kmer_len_input'].update('3')
+        continue
+    
+    if int(kmerLen) > len(dnaInput):
+        sg.popup_error('kmer length cannot be longer than DNA sequence! Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
         continue
     
     # causes error popup and wipes input field if extra letters are in the field
