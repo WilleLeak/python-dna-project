@@ -93,8 +93,10 @@ class DNA:
             reverseKmer = reverseComplementKmers[i]
             canonicalKmer = min(kmer, reverseKmer, key = lambda x: x.lower())
             canonicalKmers.append(canonicalKmer)
-        
-        return [kmers, reverseComplementKmers, canonicalKmers]
+
+        values = [kmers, reverseComplementKmers, canonicalKmers]
+        guiFriendlyValues = list(map(list, zip(*values)))
+        return guiFriendlyValues
     
     
         

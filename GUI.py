@@ -62,8 +62,7 @@ def analyzeDNA(dnaInput):
     
 def fillTable(dnaObj, kmerLen):
     values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen)
-    transposedValues = list(map(list, zip(*values)))
-    window['kmer_table'].update(values = transposedValues, visible = True)
+    window['kmer_table'].update(values = values, visible = True)
     window['kmer_desc'].update(visible = True)
 
 # =================END OF HELPER METHODS============================
@@ -86,7 +85,7 @@ sg.theme('DarkTeal4')
 
 inputLayout = [
   [sg.Text('Enter DNA sequence and kmer length', font = ('Arial Bold', 15))],
-  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (50, 10), font = ('Arial Bold', 12)), sg.InputText(key = 'kmer_len_input', default_text = '3', font = ('Arial Bold', 12), size = (3, 1))]
+  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (50, 10), enable_events = True, font = ('Arial Bold', 12)), sg.InputText(key = 'kmer_len_input', default_text = '3', font = ('Arial Bold', 12), size = (3, 1))]
 ]
 
 builderLayout = [
