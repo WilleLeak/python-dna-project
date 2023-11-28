@@ -42,14 +42,14 @@ def drawDNA(graph, dnaObj):
     if baseWidth > 15:
       centerX = x + (baseWidth / 2)
       centerY = y - 15
-      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = 'Any 12') # labels center of rectangle with base pair
+      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = 'Any 15') # labels center of rectangle with base pair
     x += baseWidth + baseSpace
   
   # the dna sticks idk what theyre called
   graph.draw_rectangle((10, 20), (15 + (baseWidth + baseSpace) * len(dnaObj.dnaStrand), 15), line_color = 'black', fill_color = 'black')
   graph.draw_rectangle((10, 80), (15 + (baseWidth + baseSpace) * len(dnaObj.dnaStrand), 85), line_color = 'black', fill_color = 'black')
   
-def analyzeDNA(dnaInput):
+def analyzeDNA(dnaInput, kmerLen):
     # creates dna object and then pulls data
     dnaObj = dna.DNA(dnaInput)
     window['dna_desc'].update(visible = True)
@@ -58,12 +58,14 @@ def analyzeDNA(dnaInput):
     # dna visualization happens here
     
     drawDNA(window['vis'], dnaObj)
-    fillTable(dnaObj, int(values['kmer_len_input']))
+    fillTable(dnaObj, kmerLen)
     
 def fillTable(dnaObj, kmerLen):
-    values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen)
+    values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen, True)
     window['kmer_table'].update(values = values, visible = True)
     window['kmer_desc'].update(visible = True)
+    
+  
 
 # =================END OF HELPER METHODS============================
 
@@ -71,7 +73,7 @@ def fillTable(dnaObj, kmerLen):
 
 # window size
 windowSizeX = 800
-windowSizeY = 700
+windowSizeY = 900
 
 # graph size
 graphSizeX = windowSizeX - 100
@@ -105,8 +107,8 @@ visualizationLayer = [
 ]
 
 kmerInfoLayer = [
-    [sg.Text('Kmer Information', key = 'kmer_desc', font = ('Arial Bold', 20), visible = False)],
-    [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', ' canonical kmer '],font = ('Arial Bold', 12), visible = False)]
+    [sg.Text('Kmer Information', key = 'kmer_desc', font = ('Arial Bold', 15), visible = False)],
+    [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', ' canonical kmer '],font = ('Arial Bold', 12), display_row_numbers = True, visible = False)]
 ]
 
 # layout that smushes it all together
@@ -142,7 +144,19 @@ while True:
     randomSequence += ''.join(random.choice('ATGC') for i in range(length))
     randomSequence += random.choice(['ATT', 'ATC', 'ACT']) #  need a stop codon for each sequence
     window['sequence_input'].update(randomSequence)
-    analyzeDNA(randomSequence)
+    kmerLen = values['kmer_len_input']
+    
+    if not kmerLen.isnumeric():
+        sg.popup_error('kmer length must be an integer! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        window['kmer_len_input'].update('3')
+        continue
+    
+    if int(kmerLen) > len(randomSequence):
+        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        window['kmer_len_input'].update('3')
+        continue
+    
+    analyzeDNA(randomSequence, int(kmerLen))
     
   # build your own sequence => i love how well this works
   if event.startswith(('a_builder', 't_builder', 'g_builder', 'c_builder')):
@@ -161,6 +175,8 @@ while True:
       window['analysis_output'].update('')
       window['vis'].erase()
       window['dna_desc'].update(visible = False)
+      window['kmer_table'].update(visible = False)
+      window['kmer_desc'].update(visible = False)
 
   # does dna analysis
   if event == 'Analyze':
@@ -178,7 +194,8 @@ while True:
         continue
     
     if int(kmerLen) > len(dnaInput):
-        sg.popup_error('kmer length cannot be longer than DNA sequence! Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = ('Arial Bold', 20), keep_on_top = True)
+        window['kmer_len_input'].update('3')
         continue
     
     # causes error popup and wipes input field if extra letters are in the field
@@ -187,7 +204,7 @@ while True:
       window['sequence_input'].update('')
       continue
     
-    analyzeDNA(dnaInput)
+    analyzeDNA(dnaInput, int(kmerLen))
 
 
 window.close()

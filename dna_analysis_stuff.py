@@ -26,12 +26,13 @@ class DNA:
                     'Gly': ['GGU', 'GGC', 'GGA', 'GGG']
                     }
 
-    def __init__(self, dnaStrand):
+    def __init__(self, dnaStrand, kmerLen):
         self.dnaStrand = dnaStrand.upper()
         self.dnaPair = self.createDnaPair(dnaStrand)
         self.mrnaStrand = self.transcribeDnaToRna(dnaStrand)
         self.aminoAcids = self.translateAminoAcids(self.mrnaStrand)
         self.gcContentValue = self.gcContent(dnaStrand)
+        self.kmerInfo = self.createKmerInfo(dnaStrand, kmerLen, False)
 
     # returns the complementary sequence  
     @staticmethod
@@ -78,7 +79,7 @@ class DNA:
 
     # kmers of n length, reverse complement kmer, canonical kmer => returns array with those in order
     @staticmethod
-    def createKmerInfo(dnaStrand, kmerLen):
+    def createKmerInfo(dnaStrand, kmerLen, forGUI):
         kmers = []
         for i in range(len(dnaStrand) - kmerLen):
             kmers.append(dnaStrand[i:i + kmerLen])
@@ -96,9 +97,9 @@ class DNA:
 
         values = [kmers, reverseComplementKmers, canonicalKmers]
         guiFriendlyValues = list(map(list, zip(*values)))
-        return guiFriendlyValues
-    
-    
+        if forGUI: return guiFriendlyValues 
+        else: return values
+
         
     
             
