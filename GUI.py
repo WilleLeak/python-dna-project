@@ -9,45 +9,42 @@ def baseToColor(base):
   colorMap = {'A': 'green', 'T': 'red', 'G': 'yellow', 'C': 'lightblue'}
   return colorMap.get(base, 'white')
 
-# first erases graph and then draws rectangles as base pairs
 def drawDNA(graph, dnaObj):
-  graph.erase()
-  x = 15
-  y = 50
-  
-  baseSpace = 5 # arbitrary number just to space out pairs so they arent hugging
-  minWidth = 10
-  availibleSpace = graphSizeX - (len(dnaObj.dnaStrand) * baseSpace) - 15
-  baseWidth = max(minWidth, availibleSpace / (len(dnaObj.dnaStrand)))
-  
-  for base in dnaObj.dnaStrand:
-    color = baseToColor(base)
-    graph.draw_rectangle((x, y), (x + baseWidth, y - 30), line_color = 'black', fill_color = color) # draws colored rectangle
+    graph.erase()
     
-    # dont draw letters if bases too small
-    if baseWidth > 15: 
-      centerX = x + (baseWidth / 2)
-      centerY = y - 15
-      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 13)) # labels center of rectangle with base pair
-    x += baseWidth + baseSpace
+    x = 25
+    y = 30
+
+    baseSpace = 5  # arbitrary number just to space out pairs so they aren't hugging
+    minWidth = 10
+    availableSpace = graphSizeY - (len(dnaObj.dnaStrand) * baseSpace) - 100
+    baseHeight = max(minWidth, availableSpace / (len(dnaObj.dnaStrand)))
+
+    print(f'baseheight = {baseHeight}')
+    for base in dnaObj.dnaStrand:
+      color = baseToColor(base)
+      graph.draw_rectangle((x, y), (x + 30, y + baseHeight), line_color = 'black', fill_color = color)
+      if baseHeight > 15:
+        centerX = x + 15
+        centerY = y + (baseHeight / 2)
+        graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 12)) # labels center of rectangle with base pair
+      y += baseSpace + baseHeight
     
-  x = 15
-  y = 80
+    x = 55
+    y = 30
     
-  for base in dnaObj.dnaPair:
-    color = baseToColor(base)
-    graph.draw_rectangle((x, y), (x + baseWidth, y - 30), line_color = 'black', fill_color = color) # draws colored rectangle
-    
-    # dont draw letters if bases too small
-    if baseWidth > 15:
-      centerX = x + (baseWidth / 2)
-      centerY = y - 15
-      graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 13)) # labels center of rectangle with base pair
-    x += baseWidth + baseSpace
-  
-  # the dna sticks idk what theyre called
-  graph.draw_rectangle((10, 20), (15 + (baseWidth + baseSpace) * len(dnaObj.dnaStrand), 15), line_color = 'black', fill_color = 'black')
-  graph.draw_rectangle((10, 80), (15 + (baseWidth + baseSpace) * len(dnaObj.dnaStrand), 85), line_color = 'black', fill_color = 'black')
+    for base in dnaObj.dnaPair:
+      color = baseToColor(base)
+      graph.draw_rectangle((x, y), (x + 30, y + baseHeight), line_color = 'black', fill_color = color)
+      if baseHeight > 15:
+        centerX = x + 15
+        centerY = y + (baseHeight / 2)
+        graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 12)) # labels center of rectangle with base pair
+      y += baseSpace + baseHeight
+      
+    graph.draw_rectangle((20, 25), (25, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
+    graph.draw_rectangle((85, 25), (90, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
+      
   
 def analyzeDNA(dnaInput, kmerLen):
   # creates dna object and then pulls data
@@ -106,11 +103,14 @@ def fillReadingFrames(dnaObj):
 
 # window size
 windowSizeX = 800
-windowSizeY = 1150
+windowSizeY = 1000
 
 # graph size
-graphSizeX = windowSizeX - 100
-graphSizeY = 90
+# graphSizeX = windowSizeX - 100
+# graphSizeY = 90
+
+graphSizeX = 100
+graphSizeY = windowSizeY - 10
 
 # fonts
 headerFont = ('Arial Bold', 15)
@@ -134,8 +134,7 @@ inputLayout = [
 builderLayout = [
   [sg.Text('Or build your own DNA sequence!', font = headerFont)],
   [sg.Button('A', key = 'a_builder'), sg.Button('T', key = 't_builder'), sg.Button('G', key = 'g_builder'), sg.Button('C', key = 'c_builder'), sg.Button('Delete', key = 'builder_delete'), sg.Button('Clear', key = 'builder_clear')],
-  [sg.Button('Randomize', key = 'builder_random')],
-  [sg.Button('Analyze')]
+  [sg.Button('Analyze'), sg.Button('Randomize', key = 'builder_random')]
 ]
 
 # layer with output box
@@ -145,8 +144,8 @@ outputLayout = [
 
 # layer with image of dna strand (ngl my favorite part)
 visualizationLayer = [
-  [sg.Text('Visualization of DNA Strand', key = 'dna_desc', justification = 'center', font = headerFont ,visible = False)],
-  [sg.Graph(canvas_size = (graphSizeX, graphSizeY), key = 'vis', graph_bottom_left = (0,0), graph_top_right = (graphSizeX, graphSizeY))]
+  [sg.Text('DNA Strand', key = 'dna_desc', justification = 'center', font = headerFont ,visible = False)],
+  [sg.Graph(canvas_size = (graphSizeX, graphSizeY), key = 'vis', graph_bottom_left = (0, graphSizeY), graph_top_right = (graphSizeX, 0))]
 ]
 
 # tab for list of kmers
@@ -187,13 +186,13 @@ kmerInfoLayer = [
 # tab for all six reading frames
 readingFramesTab = [
   [sg.Text('Six Reading frames for this DNA sequence', font = headerFont, key = 'reading_frames_desc', visible = False)],
-  [sg.Multiline('', font = textFont, visible = False, key = 'reading_frames_disp', size = (65, 11))]
+  [sg.Multiline('', font = textFont, visible = False, key = 'reading_frames_disp', size = (65, 11), disabled = True)]
 ]
 
 # tab for only open reading frames
 openReadingFramesTab = [
     [sg.Text('Open reading frames for this DNA sequence', font = headerFont, key = 'open_reading_frames_desc', visible = False)],
-    [sg.Multiline('', font = textFont, visible = False, key = 'open_reading_frames_disp', size = (65, 11))]
+    [sg.Multiline('', font = textFont, visible = False, key = 'open_reading_frames_disp', size = (65, 11), disabled = True)]
 ]
 
 readingFramesDescTab = [
@@ -221,7 +220,7 @@ leftColumnLayout = [
 
 
 mainLayout = [
-  [sg.Column(leftColumnLayout), sg.Column(visualizationLayer, vertical_alignment = 'top')]
+  [sg.Column(leftColumnLayout, vertical_alignment = 'top'), sg.Column(visualizationLayer, vertical_alignment = 'top')]
 ]
 
 # layout that smushes it all together
