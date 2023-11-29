@@ -59,6 +59,8 @@ def analyzeDNA(dnaInput, kmerLen):
   drawDNA(window['vis'], dnaObj)
   # fills out table with info
   fillTable(dnaObj, kmerLen)
+  # fills out reading frame info
+  fillReadingFrames(dnaObj)
     
     
 def fillTable(dnaObj, kmerLen): 
@@ -76,7 +78,27 @@ def fillTable(dnaObj, kmerLen):
   window['canon_kmer_counts_table'].update(values = kmerInfo[1], visible = True)
   window['canon_kmer_count_desc'].update(visible = True)
     
+def fillReadingFrames(dnaObj):
+  readingFrames = dnaObj.readingFrames
+  openReadingFrames = dnaObj.openReadingFrames
   
+  text = ''  
+  text += f'FRAME +1: {" ".join(readingFrames[0])}\n'
+  text += f'FRAME +2: {" ".join(readingFrames[1])}\n'
+  text += f'FRAME +3: {" ".join(readingFrames[2])}\n'
+  text += f'FRAME -1: {" ".join(readingFrames[3])}\n'
+  text += f'FRAME -2: {" ".join(readingFrames[4])}\n'
+  text += f'FRAME -3: {" ".join(readingFrames[5])}'
+    
+  window['reading_frames_disp'].update(text, visible = True)
+  window['reading_frames_desc'].update(visible = True)
+  
+  text = ''
+  for openReadingFrame in openReadingFrames:
+    text += openReadingFrame + '\n'
+    
+  window['open_reading_frames_disp'].update(text, visible = True)
+  window['open_reading_frames_desc'].update(visible = True)  
 
 # =================END OF HELPER METHODS============================
 
@@ -84,7 +106,7 @@ def fillTable(dnaObj, kmerLen):
 
 # window size
 windowSizeX = 800
-windowSizeY = 900
+windowSizeY = 1150
 
 # graph size
 graphSizeX = windowSizeX - 100
@@ -105,7 +127,7 @@ sg.theme('DarkGrey')
 # layer with all of the input fields
 inputLayout = [
   [sg.Text('Enter DNA sequence and kmer length', font = headerFont)],
-  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (50, 10), enable_events = True, font = textFont), sg.InputText(key = 'kmer_len_input', default_text = '3', font = textFont, size = (3, 1))]
+  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (55, 10), enable_events = True, font = textFont), sg.InputText(key = 'kmer_len_input', default_text = '3', font = textFont, size = (3, 1))]
 ]
 
 # layer with all buttons 
@@ -118,7 +140,7 @@ builderLayout = [
 
 # layer with output box
 outputLayout = [
-  [sg.Multiline('', size = (50, 10), key = 'analysis_output', font = headerFont, no_scrollbar = True, disabled = True)]
+  [sg.Multiline('', size = (54, 8), key = 'analysis_output', font = headerFont, no_scrollbar = False, disabled = True)]
 ]
 
 # layer with image of dna strand (ngl my favorite part)
@@ -130,19 +152,25 @@ visualizationLayer = [
 # tab for list of kmers
 kmerTableListTab = [
   [sg.Text('kmer information', key = 'kmer_desc', font = headerFont, visible = False)],
-  [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', 'canonical kmer'],font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
+  [sg.Table(values = [], key = 'kmer_table', headings = ['  kmers  ', 'reverse complement kmer', 'canonical kmer'], font = textFont, display_row_numbers = True, alternating_row_color = 'darkgreen', visible = False)]
 ]
 
 # tab for kmer information
 kmerTableCountsTab = [
   [sg.Text('kmer count information', key = 'kmer_count_desc', font = headerFont, visible = False)],
-  [sg.Table(values = [], key = 'kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
+  [sg.Table(values = [], key = 'kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'darkgreen', visible = False)]
 ]
 
 # tab for canonical kmer information
 canonicalKmerTableCountsTab = [
   [sg.Text('canonical kmer count information', key = 'canon_kmer_count_desc', font = headerFont, visible = False)],
-  [sg.Table(values = [], key = 'canon_kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'green', visible = False)]
+  [sg.Table(values = [], key = 'canon_kmer_counts_table', headings = ['  kmer  ', 'total count', 'distinct count', 'unique count'], font = textFont, display_row_numbers = True, alternating_row_color = 'darkgreen', visible = False)]
+]
+
+# tab for paragraph of kmer information
+kmerInformationTab = [
+  [sg.Text('Understanding kmers', font = headerFont)],
+  [sg.Multiline('A kmer is a sequence of nucleotides. In order to get a sequence of kmers, you get the first k chars and then slide a \'window\' over by one char, thus creating a overlap with only one new char. You repeat this until the end of the sequence.\n\nSince DNA is double stranded, it is usually beneficial to take a reverse complement kmer which is the same as the complementary sequence but reversed. A canonical kmer is the lexicographically smaller kmer of the standard kmer and reverse complement kmer.\n\nDistinct kmers are only counted once, even if they appear multiple times. Unique kmers are all kmers that appear only once.', font = textFont, size = (65, 11), no_scrollbar = False, disabled = True)]
 ]
 
 # tabgroup made of tabs
@@ -150,19 +178,61 @@ kmerInfoLayer = [
   [sg.TabGroup([
     [sg.Tab('kmers', kmerTableListTab)],
     [sg.Tab('kmer info', kmerTableCountsTab)],
-    [sg.Tab('canonical kmer info', canonicalKmerTableCountsTab)]
-  ], key = 'kmer_tabs')]
+    [sg.Tab('canonical kmer info', canonicalKmerTableCountsTab)],
+    [sg.Tab('how to read kmers', kmerInformationTab)]]
+               , key = 'kmer_tabs')
+  ]
 ]
 
+# tab for all six reading frames
+readingFramesTab = [
+  [sg.Text('Six Reading frames for this DNA sequence', font = headerFont, key = 'reading_frames_desc', visible = False)],
+  [sg.Multiline('', font = textFont, visible = False, key = 'reading_frames_disp', size = (65, 11))]
+]
 
-# layout that smushes it all together
-mainLayout = [
+# tab for only open reading frames
+openReadingFramesTab = [
+    [sg.Text('Open reading frames for this DNA sequence', font = headerFont, key = 'open_reading_frames_desc', visible = False)],
+    [sg.Multiline('', font = textFont, visible = False, key = 'open_reading_frames_disp', size = (65, 11))]
+]
+
+readingFramesDescTab = [
+    [sg.Text('What are reading frames?', font = headerFont)],
+    [sg.Multiline('DNA is made of four base pairs, (A)denine, (T)hymine, (C)ytosine, (G)uanine. These base pairs are then transcribed to mRNA, where the base pairs bond with a sugar and phosphate and T becomes (U)racil. This new combination is known as a nucleotide, and a group of three nucleotides is called a codon which codes for an amino acid.\n\nA reading frame is generated from mRNA, they are created by taking an mRNA sequence and splitting it up into chunks of three and then figuring out the amino acids for each codon. This is done times, each time sliding the start of the first codon over once to the right. In order to get the last three reading frames, the reverse complement sequence is found and then the same process is done.\n\nFor example:\nAUCGCA has frames:\nAUC-GCA\nA-UCG-CA\nAU-CGC-A\nUGC-GAU\nU-GCG-AU\nUG-CGA-U    Note: anything less than length three is not counted as a codon\n\nIf a reading frame has a start codon (Met) and a stop codon (UAA, UAG, UGA) in sequential order, the amino acid sequence between the start and stop codon is an open reading frame. For simplicity\'s sake, the example provided was short and did not show a start and stop codon. Proteins are formed from open reading frames.', font = textFont, size = (65, 11), no_scrollbar = False, disabled = True)]
+]
+
+readingFramesLayer = [
+  [sg.TabGroup([
+    [sg.Tab('reading frames', readingFramesTab)],
+    [sg.Tab('open reading frames', openReadingFramesTab)],
+    [sg.Tab('reading frames information', readingFramesDescTab)]]
+               , key = 'reading_frames_tabs')
+  ]
+]
+
+leftColumnLayout = [
   [sg.Column(layout = inputLayout)],
   [sg.Column(layout = builderLayout)],
   [sg.Column(layout = outputLayout)],
   [sg.Column(layout = kmerInfoLayer)],
-  [sg.Column(layout = visualizationLayer)]
+  [sg.Column(layout = readingFramesLayer)]
 ]
+
+
+
+mainLayout = [
+  [sg.Column(leftColumnLayout), sg.Column(visualizationLayer, vertical_alignment = 'top')]
+]
+
+# layout that smushes it all together
+# mainLayout = [
+#   [sg.Column(layout = inputLayout)],
+#   [sg.Column(layout = builderLayout)],
+#   [sg.Column(layout = outputLayout)],
+#   [sg.Column(layout = kmerInfoLayer)],
+#   [sg.Column(layout = readingFramesLayer)],
+#   [sg.Column(layout = visualizationLayer)]
+# ]
 
  # ================END OF GUI LAYOUT================================
 
@@ -184,9 +254,9 @@ while True:
   if event == 'builder_random':
     length = random.randint(20, 34)
     length = (length // 3) * 3
-    randomSequence = 'TAC' # need a start codon for each sequence
+    randomSequence = 'ATG' # need a start codon for each sequence
     randomSequence += ''.join(random.choice('ATGC') for i in range(length))
-    randomSequence += random.choice(['ATT', 'ATC', 'ACT']) #  need a stop codon for each sequence
+    randomSequence += random.choice(['TAA', 'TAG', 'TGA']) #  need a stop codon for each sequence
     window['sequence_input'].update(randomSequence)
     kmerLen = values['kmer_len_input']
     
@@ -227,6 +297,10 @@ while True:
       window['kmer_count_desc'].update(visible = False)
       window['canon_kmer_counts_table'].update(visible = False)
       window['canon_kmer_count_desc'].update(visible = False)
+      window['reading_frames_desc'].update(visible = False)
+      window['reading_frames_disp'].update(visible = False)
+      window['open_reading_frames_desc'].update(visible = False)
+      window['open_reading_frames_disp'].update(visible = False)
 
   # does dna analysis
   if event == 'Analyze':
