@@ -1,6 +1,8 @@
 # python-dna-project
 project for python class (i have no knowledge of biology)
 
+NOTE: CODE IS OPTIMIZED FOR WINDOWS DISPLAYS! GUI LOOKS WEIRD/DRAWING NOT DISPLAYING PROPERLY ON MAC DISPLAYS! I DONT KNOW WHY!
+
 has features such as:
   - a useable GUI! (wow so cool)
   - translating dna to mrna
