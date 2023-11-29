@@ -12,6 +12,7 @@ def baseToColor(base):
 def drawDNA(graph, dnaObj):
     graph.erase()
     
+    # set x, y values for left side dna pairs
     x = 25
     y = 30
 
@@ -20,28 +21,35 @@ def drawDNA(graph, dnaObj):
     availableSpace = graphSizeY - (len(dnaObj.dnaStrand) * baseSpace) - 100
     baseHeight = max(minWidth, availableSpace / (len(dnaObj.dnaStrand)))
 
-    print(f'baseheight = {baseHeight}')
+    # draws the left side dna base pairs
     for base in dnaObj.dnaStrand:
+      # get color for each base
       color = baseToColor(base)
       graph.draw_rectangle((x, y), (x + 30, y + baseHeight), line_color = 'black', fill_color = color)
+      # only draw letters if base height supports it
       if baseHeight > 15:
         centerX = x + 15
         centerY = y + (baseHeight / 2)
         graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 12)) # labels center of rectangle with base pair
       y += baseSpace + baseHeight
     
+    # set x, y values for right side blocks
     x = 55
     y = 30
     
+    # draws the right side dna base pairs
     for base in dnaObj.dnaPair:
+      # get color for each base
       color = baseToColor(base)
       graph.draw_rectangle((x, y), (x + 30, y + baseHeight), line_color = 'black', fill_color = color)
+      # only draw letters if base height supports it
       if baseHeight > 15:
         centerX = x + 15
         centerY = y + (baseHeight / 2)
         graph.draw_text(text = base, location = (centerX, centerY), color = 'black', font = ('Arial Bold', 12)) # labels center of rectangle with base pair
       y += baseSpace + baseHeight
-      
+    
+    # draws the two sides to the ladder  
     graph.draw_rectangle((20, 25), (25, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
     graph.draw_rectangle((85, 25), (90, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
       
@@ -65,7 +73,6 @@ def fillTable(dnaObj, kmerLen):
   values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen, True)
   window['kmer_table'].update(values = values, visible = True)
   window['kmer_desc'].update(visible = True)
-  
   
   kmerInfo = dna.DNA.generateExtraKmerInfo(dnaObj.kmerInfo, True)
 
@@ -218,20 +225,10 @@ leftColumnLayout = [
 ]
 
 
-
+# main layout => lmao its short bc its all stuffed into the left column
 mainLayout = [
   [sg.Column(leftColumnLayout, vertical_alignment = 'top'), sg.Column(visualizationLayer, vertical_alignment = 'top')]
 ]
-
-# layout that smushes it all together
-# mainLayout = [
-#   [sg.Column(layout = inputLayout)],
-#   [sg.Column(layout = builderLayout)],
-#   [sg.Column(layout = outputLayout)],
-#   [sg.Column(layout = kmerInfoLayer)],
-#   [sg.Column(layout = readingFramesLayer)],
-#   [sg.Column(layout = visualizationLayer)]
-# ]
 
  # ================END OF GUI LAYOUT================================
 
@@ -329,7 +326,6 @@ while True:
       continue
     
     analyzeDNA(dnaInput, int(kmerLen))
-
 
 window.close()
 # bye bye window
