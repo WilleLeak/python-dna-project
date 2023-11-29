@@ -1,6 +1,6 @@
-import PySimpleGUI as sg
-import dna_analysis_stuff as dna
-import random
+import PySimpleGUI as sg # gui stuff (pip install PySimpleGui to install on your machine)
+import dna_analysis_stuff as dna  # class consisting of dna analysis work
+import random # for the randomize function
 
 # ==================HELPER METHODS==================================
 
@@ -9,6 +9,8 @@ def baseToColor(base):
   colorMap = {'A': 'green', 'T': 'red', 'G': 'yellow', 'C': 'lightblue'}
   return colorMap.get(base, 'white')
 
+# draws dna strand on side of GUI, this is my favorite part => DOES NOT PROPERLY DISPLAY DNA PAST 66 CHAR LENGTH BECAUSE OF MIN WIDTH = 10!!!! 
+# code still works fine though, dna will just get cut off but thats fine bc its just a picture that no one will look at
 def drawDNA(graph, dnaObj):
     graph.erase()
     
@@ -53,7 +55,7 @@ def drawDNA(graph, dnaObj):
     graph.draw_rectangle((20, 25), (25, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
     graph.draw_rectangle((85, 25), (90, (baseHeight + baseSpace) * len(dnaObj.dnaStrand) + 30), fill_color = 'black')
       
-  
+# compilation of all the math/biology done => why does it work so smoothly?  
 def analyzeDNA(dnaInput, kmerLen):
   # creates dna object and then pulls data
   dnaObj = dna.DNA(dnaInput, kmerLen)
@@ -67,7 +69,7 @@ def analyzeDNA(dnaInput, kmerLen):
   # fills out reading frame info
   fillReadingFrames(dnaObj)
     
-    
+# fills out the tables in the kmer info tab    
 def fillTable(dnaObj, kmerLen): 
   # calls kmerInfo method to get gui friendly kmers and then updates data and visibility of table
   values = dna.DNA.createKmerInfo(dnaObj.dnaStrand, kmerLen, True)
@@ -81,7 +83,8 @@ def fillTable(dnaObj, kmerLen):
   
   window['canon_kmer_counts_table'].update(values = kmerInfo[1], visible = True)
   window['canon_kmer_count_desc'].update(visible = True)
-    
+
+# fills out the text boxes in the reading frame tab    
 def fillReadingFrames(dnaObj):
   readingFrames = dnaObj.readingFrames
   openReadingFrames = dnaObj.openReadingFrames
@@ -112,10 +115,6 @@ def fillReadingFrames(dnaObj):
 windowSizeX = 800
 windowSizeY = 1000
 
-# graph size
-# graphSizeX = windowSizeX - 100
-# graphSizeY = 90
-
 graphSizeX = 100
 graphSizeY = windowSizeY - 10
 
@@ -123,7 +122,6 @@ graphSizeY = windowSizeY - 10
 headerFont = ('Arial Bold', 15)
 textFont = ('Arial Bold', 12)
 errorFont = ('Arial Bold', 20)
-
 
 # =================END OF GLOBAL VARIABLES==========================
 
@@ -134,7 +132,7 @@ sg.theme('DarkGrey')
 # layer with all of the input fields
 inputLayout = [
   [sg.Text('Enter DNA sequence and kmer length', font = headerFont)],
-  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (55, 10), enable_events = True, font = textFont), sg.InputText(key = 'kmer_len_input', default_text = '3', font = textFont, size = (3, 1))]
+  [sg.InputText(key = 'sequence_input', default_text = 'Enter DNA sequence or randomize', size = (63, 10), enable_events = True, font = textFont), sg.InputText(key = 'kmer_len_input', default_text = '3', font = textFont, size = (3, 1))]
 ]
 
 # layer with all buttons 
@@ -202,11 +200,13 @@ openReadingFramesTab = [
     [sg.Multiline('', font = textFont, visible = False, key = 'open_reading_frames_disp', size = (65, 11), disabled = True)]
 ]
 
+# description of what a reading frame is => i hope this is right bc i spend 30 min researching it
 readingFramesDescTab = [
     [sg.Text('What are reading frames?', font = headerFont)],
     [sg.Multiline('DNA is made of four base pairs, (A)denine, (T)hymine, (C)ytosine, (G)uanine. These base pairs are then transcribed to mRNA, where the base pairs bond with a sugar and phosphate and T becomes (U)racil. This new combination is known as a nucleotide, and a group of three nucleotides is called a codon which codes for an amino acid.\n\nA reading frame is generated from mRNA, they are created by taking an mRNA sequence and splitting it up into chunks of three and then translating the amino acids for each codon. This is done three times, each time sliding the start of the first codon over once to the right. In order to get the last three reading frames, the reverse complement sequence is found and then the same process is done.\n\nFor example:\nAUCGCA has frames:\nAUC-GCA\nA-UCG-CA\nAU-CGC-A    Now, take the reverse complement. AUCGCA => UGCGAU\nUGC-GAU\nU-GCG-AU\nUG-CGA-U    Note: anything less than length three is not counted as a codon\n\nIf a reading frame has a start codon (Met) and a stop codon (UAA, UAG, UGA) in sequential order, the amino acid sequence between the start and stop codon is an open reading frame. For simplicity\'s sake, the example provided was short and did not show a start and stop codon. Proteins are formed from open reading frames.', font = textFont, size = (65, 11), no_scrollbar = False, disabled = True)]
 ]
 
+# tabgroup consisting of reading frame stuff
 readingFramesLayer = [
   [sg.TabGroup([
     [sg.Tab('reading frames', readingFramesTab)],
@@ -216,6 +216,7 @@ readingFramesLayer = [
   ]
 ]
 
+# stuff on the left of the gui
 leftColumnLayout = [
   [sg.Column(layout = inputLayout)],
   [sg.Column(layout = builderLayout)],
@@ -246,9 +247,9 @@ while True:
   if event == sg.WIN_CLOSED or event == 'Exit':
     break
   
-  # randomize a sequence of dna
+  # randomize a sequence of dna => too lazy to fix the codon issue with randomize but it works 99% of the time
   if event == 'builder_random':
-    length = random.randint(20, 34)
+    length = random.randint(25, 50)
     length = (length // 3) * 3
     randomSequence = 'ATG' # need a start codon for each sequence
     randomSequence += ''.join(random.choice('ATGC') for i in range(length))
@@ -267,7 +268,7 @@ while True:
         sg.popup_error('kmer length cannot be longer than DNA sequence! Defaulting to 3. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
         window['kmer_len_input'].update('3') # default to 3
         continue
-    
+    # if all works do the analysis
     analyzeDNA(randomSequence, int(kmerLen))
     
   # build your own sequence => i love how well this works
@@ -324,7 +325,7 @@ while True:
       sg.popup_error('Can only use characters \'A\' \'T\' \'G\' \'C\' in DNA sequence. Please try again.', title = 'ERROR!', font = errorFont, keep_on_top = True)
       window['sequence_input'].update('')
       continue
-    
+    # if all works do the analysis
     analyzeDNA(dnaInput, int(kmerLen))
 
 window.close()
