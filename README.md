@@ -2,9 +2,11 @@
 project for python class (i have no knowledge of biology)
 
 NOTE: CODE IS OPTIMIZED FOR WINDOWS DISPLAYS! GUI LOOKS WEIRD/DRAWING NOT DISPLAYING PROPERLY ON MAC DISPLAYS! I DONT KNOW WHY! ALL FEATURES ARE STILL PRESENT THOUGH.
+  
   quick fix found for mac devices: 
   
-    in global variables, change windowSizeX to 700 and windowSizeY to 850 (im pretty sure mac pixel densities are different than pc monitor pixel densities so the display draws weird bc of that)
+  in global variables, change windowSizeX to 700 and windowSizeY to 850 
+  (im pretty sure mac pixel densities are different than pc monitor pixel densities so the display draws weird bc of that)
       
 
 has features such as:
